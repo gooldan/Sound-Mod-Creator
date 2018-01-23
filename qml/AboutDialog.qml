@@ -31,7 +31,7 @@ Window {
                 width: baseElem.width
                 id: smc_ver
                 font.pixelSize: 15
-                text: rootParent.pROGRAM_VERSION_STR.slice(3) + ". 2017."
+                text: rootParent.pROGRAM_VERSION_STR.slice(3) + ". 2017-2018."
             }
             Text {
                 wrapMode: Text.WordWrap

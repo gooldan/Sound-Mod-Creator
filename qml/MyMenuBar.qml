@@ -31,8 +31,11 @@ MenuBar {
         MenuItem {
             text: myMenuBar.rootParent.languageIndex == 0 ? "Save project" : "Сохранить проект"
             onTriggered: {
+                MyLoader.saveProject(myMenuBar.rootParent.projectBackupPath,
+                                     myFile, tabs, myMenuBar.rootParent)
                 MyLoader.saveProject(myMenuBar.rootParent.projectFilePath,
                                      myFile, tabs, myMenuBar.rootParent)
+
                 errorWindow.messageText = rootParent.languageIndex == 0 ? "Saved!" : "Сохранено!"
                 errorWindow.showAgaing.visible = true
                 if (!errorWindow.showAgaing.checked) {
@@ -49,6 +52,10 @@ MenuBar {
             text:myMenuBar.rootParent.languageIndex == 0 ? "Close project" : "Закрыть проект"
             enabled: rootParent.enabled
             onTriggered: {
+                MyLoader.saveProject(
+                            rootParent.projectBackupPath,
+                            myFile, rootParent.tabs,
+                            rootParent)
                 rootParent.eventListModel.clear();
                 rootParent.eventList.currentIndex = -1
                 rootParent.stateListModel.clear()
@@ -85,6 +92,11 @@ MenuBar {
                                                      newDb.modName) === false) {
                             return
                         }
+
+                        MyLoader.saveProject(
+                                    rootParent.projectBackupPath,
+                                    myFile, rootParent.tabs,
+                                    rootParent)
                         //var loadedProjDir = myFile.getFileDir(trueUrl)
                         var res = MyLoader.loadProject(newDb, tabs, rootParent)
                         if (res.ans === false) {
@@ -109,6 +121,11 @@ MenuBar {
                         rootParent.pathTable.selection.clear()
                         rootParent.projectFilePath = trueUrl
                         rootParent.projectFileDir = myFile.getFileDir(trueUrl)
+                        rootParent.projectBackupPath = rootParent.projectFileDir + "/Backups/"+rootParent.modName+".rvb"
+                        MyLoader.saveProject(
+                                    rootParent.projectBackupPath,
+                                    myFile, rootParent.tabs,
+                                    rootParent)
                         myWindow.title = rootParent.projectFilePath + pROGRAM_VERSION_STR
                     }
                 }
@@ -122,6 +139,14 @@ MenuBar {
                     recentMenu.insertItem(index, object)
                 }
             }
+        }
+        MenuItem{
+            text:myMenuBar.rootParent.languageIndex == 0 ? "Restore project" : "Восстановить проект"
+            enabled: rootParent.enabled
+            onTriggered: {
+                restoreDialog.show()
+            }
+
         }
         MenuSeparator {
         }

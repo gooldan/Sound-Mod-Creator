@@ -153,11 +153,7 @@ QString FileIO::copyFile(const QString &filePath, const QString &dirToCopy)
     QFileInfo file(filePath);
     if(file.exists())
     {
-        std::unique_ptr<std::thread> t(new std::thread([=]{
-                QFile::copy(filePath,dirToCopy+"/"+file.fileName());
-
-        }));
-        t->detach();
+        QFile::copy(filePath,dirToCopy+"/"+file.fileName());
         return file.fileName();
     }
     else
@@ -249,14 +245,15 @@ QString FileIO::massFilesCopy(const QString &jsonObj)
     t->detach();
     return "";
 }
-QString FileIO::getDirectoryContent(const QString &dirFilePath)
+QString FileIO::getDirectoryContent(const QString &dirFilePath, bool allFiles)
 {
     QDirIterator it(dirFilePath, QDirIterator::NoIteratorFlags);
     QJsonArray arr;
     while (it.hasNext()) {
         QString path=it.next();
         QFileInfo fi(path);
-        if(fi.suffix()=="mp3" || fi.suffix()=="wav")
+
+        if((allFiles && fi.isFile()) || (fi.suffix()=="mp3" || fi.suffix()=="wav"))
         {
             arr.append(fi.absoluteFilePath());
         }

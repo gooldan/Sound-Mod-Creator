@@ -12,6 +12,8 @@ Rectangle {
     property var rootParent
     property var currentAddSelection
     property var currentRemoveSelection
+    property alias deleteBut: removePathButton
+    property alias addBut : addPathButton
     id: precisionsBlock
     anchors.left: parent.left
     anchors.right: parent.right
@@ -143,6 +145,16 @@ Rectangle {
                 addPathButton.enabled = false
                 muteButton.enabled = false
             }
+        }
+        Label {
+            anchors.right: parent.right
+            anchors.top:parent.top
+            id: xmlVersion
+            visible: rootParent.modxmlVersion > 0 && rootParent.enabled
+            text: (rootParent.languageIndex == 0 ?
+                      "Mod.xml root version: " :
+                      "Версия mod.xml: ")
+                      + rootParent.modxmlVersion
         }
     }
     Rectangle {
@@ -285,6 +297,7 @@ Rectangle {
                             if(searchRect.visible==true)
                             {
                                 searchRect.visible=false;
+
                             }
                             rootParent._LOG(indexOfItem)
                             var currentSelection = [];

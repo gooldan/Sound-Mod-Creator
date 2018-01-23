@@ -156,6 +156,7 @@ Window {
                 //nameInputField.textColor = "red"
                 nameInputField.selectAll()
                 nameInputField.isError = true
+                rootParent.modxmlVersion = 0
             }
 
             id: okbutton
@@ -195,8 +196,10 @@ Window {
                                 rootParent.projectFilePath = filemanager.source
                                 rootParent.projectFileDir = filemanager.getFileDir(
                                             filemanager.source)
+                                rootParent.projectBackupPath = rootParent.projectFileDir + "/Backups/"+nameInputField.text+".rvb"
                                 filemanager.createDir(
                                             rootParent.projectFileDir + "/Audio")
+                                filemanager.createDir(rootParent.projectFileDir + "/Backups")
                                 res = filemanager.createDir(
                                             rootParent.cfg.gameDir + "/res_mods")
                                 if (res) {
@@ -222,7 +225,7 @@ Window {
                                                 } else {
                                                     rootParent.copyFiles = false
                                                 }
-
+                                                rootParent.modxmlVersion = t.version
                                                 MyLoader.openNewProject(
                                                             t, rootParent)
                                                 mydialog.close()
@@ -233,12 +236,16 @@ Window {
                                                                 0, 1)
                                                 }
                                                 MyLoader.saveProject(
+                                                            rootParent.projectBackupPath,
+                                                            myFile, rootParent.tabs,
+                                                            rootParent)
+                                                MyLoader.saveProject(
                                                             rootParent.projectFilePath,
                                                             myFile, rootParent.tabs,
                                                             rootParent)
                                                 MyLoader.updateRecents(
                                                             rootParent.cfg,
-                                                            rootParent.recentModel, myFile)
+                                                            myMenuBar.recentModel, myFile)
                                                 myWindow.title = rootParent.projectFilePath + pROGRAM_VERSION_STR
                                             }
                                         } else {

@@ -9,7 +9,7 @@ import "help.js" as Helper
 
 TabView {
     id:tabs
-    width: currentIndex>=0 ? tabs.getTab(currentIndex).maxWidth: 150
+    width: minWidth
     property int minWidth:150
 
     EventsTab{
@@ -23,7 +23,7 @@ TabView {
     }
     EventsTab{
         title:"Loop"
-        enabled: false
+        enabled: advanced_user
         rootParent: tabs.rootParent
     }
     onCurrentIndexChanged: {

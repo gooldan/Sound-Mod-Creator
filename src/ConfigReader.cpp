@@ -41,6 +41,10 @@ int ConfigReader::parse()
         {
             if(xml.name() == "mod.xml")
             {
+
+            }
+            if(xml.name() == "events")
+            {
                 QXmlStreamAttributes attributes = xml.attributes();
                 for(auto &attr : attributes)
                 {
@@ -53,10 +57,6 @@ int ConfigReader::parse()
                         return ErrorCode::XML_ERROR;
                     }
                 }
-                continue;
-            }
-            if(xml.name() == "events")
-            {
                 auto err = parseEvents();
                 if (err != ErrorCode::OK)
                 {
@@ -65,6 +65,7 @@ int ConfigReader::parse()
             }
             if(xml.name() == "states")
             {
+
                 auto err = parseStates();
                 if (err != ErrorCode::OK)
                 {

@@ -132,14 +132,30 @@ bool Generator::serialize(const QString &jsString)
 
 }
 
+bool writeXmlToDir(QString xml, QString dirPath)
+{
+    QFileInfo fi(dirPath);
+    if(fi.exists())
+    {
+        QFile outXML(dirPath+"/mod.xml");
+        if (!outXML.open(QFile::WriteOnly | QFile::Truncate))
+            return false;
+        QTextStream out(&outXML);
+        out.setCodec("UTF-8");
+        out << xml;
+        outXML.close();
+    }
+    else
+    {
+        return false;
+    }
+    return true;
+}
+
 QString Generator::generate(bool copy,const QString &dir,const QString &pathToCLI, const QString &pathToProj, const QString& conversion)
 {
     connect(this,SIGNAL(fileCopyProgress(int)),this,SLOT(printProgress(int)));
 
-    std::unique_ptr<std::thread> t(new std::thread([=]{
-        copyFiles(dir,pathToCLI,pathToProj,conversion);
-    }));
-    t->detach();
     QString xmlFileStr;
     QXmlStreamWriter wr(&xmlFileStr);
     wr.setCodec("UTF-8");
@@ -224,19 +240,22 @@ QString Generator::generate(bool copy,const QString &dir,const QString &pathToCL
     wr.writeEndElement();
     wr.writeEndElement();
     wr.writeEndDocument();
-    QFile outXML(outputDir+"/mod.xml");
-    if (!outXML.open(QFile::WriteOnly | QFile::Truncate))
+
+    if(!writeXmlToDir(xmlFileStr,outputDir))
+    {
         return "{\"answer\":\"BAD\"}";
-
-    QTextStream out(&outXML);
-    out.setCodec("UTF-8");
-    out << xmlFileStr;
-    outXML.close();
-
-    xmlFileStr.clear();
-
+    }
 
     emit generationDone();
+
+    std::unique_ptr<std::thread> t(new std::thread([=]{
+        copyFiles(dir,pathToCLI,pathToProj,conversion);
+        writeXmlToDir(xmlFileStr,outputDir+"/PS4");
+        writeXmlToDir(xmlFileStr,outputDir+"/XboxOne");
+    }));
+    xmlFileStr.clear();
+    t->detach();
+
     QJsonDocument doc;
     QJsonObject obj;
     obj["answer"]="OK";

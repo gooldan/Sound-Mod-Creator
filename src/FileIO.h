@@ -25,7 +25,7 @@ public:
     Q_INVOKABLE static QString copyFile(const QString &filePath, const QString &dirToCopy);
     Q_INVOKABLE QString copyAudioFile(const QString &filePath, const QString &dirToCopy, const bool copy);
     Q_INVOKABLE QString massFilesCopy(const QString &jsonObj);
-    Q_INVOKABLE static QString getDirectoryContent(const QString &dirFilePath);
+    Q_INVOKABLE static QString getDirectoryContent(const QString &dirFilePath, bool allFiles = false);
     Q_INVOKABLE static bool removeFile(const QString &filePath);
     Q_INVOKABLE QString getFileName(const QString &filePath);
     QString source() { return mSource; }

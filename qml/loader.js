@@ -11,6 +11,10 @@ function _LOG (body)
 }
 
 function saveProject(filesystemUrl, fileReader, tabs, rootObject) {
+    if(filesystemUrl.length>0 && filesystemUrl[filesystemUrl.length-1]==='b')
+    {
+        filesystemUrl+=Date.now()
+    }
     fileReader.setSource(filesystemUrl)
     try {
         var currentSelection = db.events[rootObject.currentEventDbIndex].currentChain[rootObject.tabs.currentIndex]
@@ -23,6 +27,7 @@ function saveProject(filesystemUrl, fileReader, tabs, rootObject) {
         db.modDirInGame = rootObject.modDirInGame
         db.projectFileDir = rootObject.projectFileDir
         db.projectFilePath = rootObject.projectFilePath
+        db.projectBackupPath = rootObject.projectBackupPath
         db.modName = rootObject.modName
         db.copyFiles = rootObject.copyFiles
         db.lostFiles = []
@@ -67,12 +72,31 @@ function getActualDb(rootObject) {
             var jsonStr = rootObject.configReader.createJSON()
             var actualDb = JSON.parse(jsonStr)
             actualDb.ok = true
+            rootObject.modxmlVersion = actualDb.version
             return actualDb
         }
     }
     return {
         ok: false
     }
+}
+
+function compareStates(arrNew, arrOld)
+{
+    var newContentIndexMap = []
+    for (var i in arrNew) {
+        var newState = {name: arrNew[i], oldIndex:Number(i), newIndex:Number(i)}
+        var oldStateVal = searchIn0WithInd(arrNew[i][0], arrOld)
+        if(oldStateVal === null)
+        {
+            newState.oldIndex = -1;
+        }
+        else if(oldStateVal.__MY_CURRENT_INDEX !== i) {
+            newState.oldIndex = oldStateVal.__MY_CURRENT_INDEX
+        }
+        newContentIndexMap.push(newState)
+    }
+    return newContentIndexMap
 }
 
 function compareArrays(arrOld, arrNew) {
@@ -216,32 +240,22 @@ function convertExternals(extArr, newDir, fileio) {
         }
     }
 }
-
-function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
-    rootObject.globalMenuModel.clear();
-    if(newDb.programVersion !== rootObject.pROGRAM_VERSION_STR)
+function mergeVersions(actualDb, newDb)
+{
+    for (var i in actualDb.states)
     {
-        if(newDb.programVersion === undefined)
-        {
-            newDb.programVersion = "unspecified";
-        }
-        return {"ver":newDb.programVersion,"ans":false};
-    }
-    var actualDb = getActualDb(rootObject)
-    if(actualDb.ok === false)
-        return {"ver":"cfg file error","ans:":false};
-    for (var i in actualDb.states) {
         var newStateObj = actualDb.states[i]
-        var oldStateObj = search(newStateObj.name, newDb.states)
+
+        var oldStateObj = searchByName(newStateObj.realName,"realName", newDb.states)
         if (oldStateObj === null) {
-            //newDb.states.push(newStateObj);
+            newDb.states.push(newStateObj);
             continue
         }
         var oldAcceptsArr = oldStateObj.accepts
         var newAcceptsArr = newStateObj.accepts
         newStateObj.globallyAppended = oldStateObj.globallyAppended;
         var missing = compareArrays(oldStateObj.accepts, newStateObj.accepts)
-        if (oldStateObj.content.length !== newStateObj.content.length) {
+        if (oldStateObj.accepts.length !== newStateObj.accepts.length) {
             missing = oldAcceptsArr
         }
         for (var j in missing) {
@@ -258,8 +272,133 @@ function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
                 toBeDelObj.statePaths[t] = []
             }
         }
-        //oldStateObj.states[i]=actualDb.states[i];
+        var newStateMap = compareStates(newStateObj.content, oldStateObj.content)
+        function compare(a,b) {
+          if (a.newIndex < b.newIndex)
+            return -1;
+          if (a.newIndex > b.newIndex)
+            return 1;
+          return 0;
+        }
+        newStateMap.sort(compare);
+        var newContent = []
+        for(var t in newStateMap)
+        {
+            var newStateVal = newStateMap[t]
+            if(newStateVal.oldIndex === -1)
+            {
+
+            }
+            else if(newStateVal.oldIndex !== newStateVal.newIndex)
+            {
+                for(var j in oldStateObj.accepts)
+                {
+                    var evName = oldStateObj.accepts[j]
+                    var evObj = search(evName, newDb.events)
+                    for(var k = 0; k < 3; ++k)
+                    {
+                        var foundPath = searchSubstrWithIndex(newStateVal.name[0], evObj.filePaths[k])
+                        if(foundPath !== null) {
+                            var stateIndex = foundPath.name.split('.').indexOf(newStateVal.name[0])
+                            var stateChainObj = evObj.statePaths[k][foundPath.__MY_CURRENT_INDEX]
+                            var states = stateChainObj.split(',')
+                            states[stateIndex] = newStateVal.newIndex
+                            evObj.statePaths[k][foundPath.__MY_CURRENT_INDEX] = states.toString()
+                        }
+                    }
+                }
+            }
+        }
+        for(var t in newStateMap)
+        {
+            newContent.push(newStateMap[t].name)
+        }
+        var oldStateContent = oldStateObj.content
+        var newStateContent = newContent
+        for(var t in oldStateContent)
+        {
+            if(searchIn0WithInd(oldStateContent[t][0],newStateContent) === null)
+            {
+                for(var j in oldStateObj.accepts)
+                {
+                    var evName = oldStateObj.accepts[j]
+                    var evObj = search(evName, newDb.events)
+                    for(var k = 0; k < 3; ++k)
+                    {
+                        var foundPath = searchWithIndex(oldStateContent[t][0], evObj.filePaths[k])
+                        if(foundPath!==null)
+                        {
+                            var pathIndex = foundPath.__MY_CURRENT_INDEX
+                            evObj.filePaths[k].splice(pathIndex,1)
+                            evObj.statePaths[k].splice(pathIndex,1)
+                            if(evObj.filePaths[k].length === 0)
+                            {
+                                evObj.selectedChain[k] = ["default (*)"]
+                                evObj.statePaths[k] = []
+                                evObj.filePaths[k] = []
+                                evObj.currentChain[k]=[]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        oldStateObj.content = newContent
     }
+
+    for(var i in newDb.states)
+    {
+        var oldStateObj = newDb.states[i]
+        var newStateObj = searchByName(oldStateObj.realName,"realName", actualDb.states)
+        if (newStateObj === null) {
+            for(var t in oldStateObj.content)
+            {
+                var oldStateVal = oldStateObj.content[t]
+                for(var j in oldStateObj.accepts)
+                {
+                    var evName = oldStateObj.accepts[j]
+                    var evObj = search(evName, newDb.events)
+                    if(evObj !== null)
+                    {
+                        for(var k = 0; k < 3; ++k)
+                        {
+                            evObj.selectedChain[k] = ["default (*)"]
+                            evObj.statePaths[k] = []
+                            evObj.filePaths[k] = []
+                            evObj.currentChain[k]=[]
+                        }
+                    }
+                }
+            }
+        }
+    }
+    actualDb.states = newDb.states
+}
+
+function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
+    rootObject.globalMenuModel.clear();
+    if(newDb.programVersion !== rootObject.pROGRAM_VERSION_STR)
+    {
+        if(newDb.programVersion === undefined)
+        {
+            newDb.programVersion = "unspecified";
+        }
+        return {"ver":newDb.programVersion,"ans":false};
+    }
+    var actualDb = getActualDb(rootObject)
+    console.log("DB_VERSION:", actualDb.version)
+    console.log("VERSION:", newDb.version)
+    if(actualDb.ok === false)
+        return {"ver":"cfg file error","ans:":false};
+    if(newDb.version === undefined)
+    {
+        newDb.version = -1
+    }
+    if(actualDb.version !== newDb.version)
+    {
+        mergeVersions(actualDb,newDb)
+    }
+
     if(newFileDir === undefined) newFileDir = newDb.projectFileDir
     var needToExport = newDb.projectFileDir !== newFileDir;
 
@@ -273,7 +412,12 @@ function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
         }
         for (var t = 0; t < 3; ++t) {
             if (newEventObj.accepts[t] === oldEventObj.accepts[t]) {
+
                 newEventObj.currentChain[t] = oldEventObj.currentChain[t]
+                for(var p in newEventObj.currentChain[t])
+                {
+                    newEventObj.currentChain[t][p]=[]
+                }
                 if(needToExport)
                 {
                     convertExternals(oldEventObj.filePaths[t],newFileDir,fileio)
@@ -292,10 +436,16 @@ function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
     {
         newDb.projectFileDir = newFileDir
         newDb.projectFilePath = newFileDir+"/"+newDb.modName+".rvm"
+        newDb.projectBackupPath = newFileDir+"/Backups/"+newDb.modName+".rvb"
     }
     actualDb.modDirInGame = rootObject.modDirInGame
     actualDb.projectFileDir = newDb.projectFileDir
     actualDb.projectFilePath = newDb.projectFilePath
+    if(newDb.projectBackupPath === undefined)
+    {
+        newDb.projectBackupPath = newDb.projectFileDir+"/Backups/"+newDb.modName+".rvb"
+    }
+    actualDb.projectBackupPath = newDb.projectBackupPath
     actualDb.copyFiles = newDb.copyFiles
     actualDb.modName = newDb.modName
     actualDb.programVersion = newDb.programVersion
@@ -308,6 +458,7 @@ function loadProject(newDb, tabs, rootObject, newFileDir,fileio) {
     //rootObject.modDirInGame = db.modDirInGame
     rootObject.projectFileDir = db.projectFileDir
     rootObject.projectFilePath = db.projectFilePath
+    rootObject.projectBackupPath = db.projectBackupPath
     rootObject.copyFiles = db.copyFiles
     rootObject.modName = db.modName
     for (var i = 0; i < 3; ++i) {
@@ -663,7 +814,9 @@ function checkValidity(eventDbIndex, tabIndex) {
 function addStatePath(arrToInsert, eventIndex, tabIndex, isMuted) {
     var returnArr = []
     var readable = []
+    arrToInsert.reverse()
     for (var i = 0; i < arrToInsert.length; ++i) {
+        _LOG("INS: " + arrToInsert[i].toString())
         var index = db.events[eventIndex].statePaths[tabIndex].push(
                     arrToInsert[i].toString()) - 1
         var pathName = ""
@@ -766,6 +919,7 @@ function exportProject(rootObject, fileIO, exportPath, modName) {
     exportDb.modDirInGame = ""
     exportDb.projectFileDir = ""
     exportDb.projectFilePath = ""
+    exportDb.projectBackupPath = ""
     exportDb.modName = modName
     exportDb.copyFiles = true
     fileIO.setSource(
@@ -903,6 +1057,10 @@ function importProject(rootObject, fileIO, importFilePath) {
     if (!res) {
         return false
     }
+    res = fileIO.createDir(projectFileDir + "/Backups")
+    if (!res) {
+        return false
+    }
     var dirToCopy = projectFileDir + "/Audio"
     var ditFromCopy = projectFileDir
     var importDb = getDbFromfile(importFilePath, fileIO)
@@ -936,6 +1094,7 @@ function importProject(rootObject, fileIO, importFilePath) {
     fileIO.setSource(projectFileDir + "/" + importDb.modName + ".rvm")
     fileIO.write(JSON.stringify(importDb))
     importDb.projectFilePath = fileIO.source
+    importDb.projectBackupPath = projectFileDir+"/Backups/"+ importDb.modName + ".rvb"
     importDb.programVersion = rootObject.pROGRAM_VERSION_STR;
     loadProject(importDb, rootObject.tabs, rootObject)
 }
@@ -1022,6 +1181,15 @@ function deletePaths(stateChain, currentEventIndex, currentTabIndex) {
 }
 
 function mutePaths(arrToInsert, eventIndex, tabIndex) {}
+function searchSubstrWithIndex(nameKey, myArray) {
+    for (var i = 0; i < myArray.length; i++) {
+        if (myArray[i].name.indexOf(nameKey) !== -1) {
+            myArray[i].__MY_CURRENT_INDEX = i;
+            return myArray[i]
+        }
+    }
+    return null
+}
 function searchWithIndex(nameKey, myArray) {
     for (var i = 0; i < myArray.length; i++) {
         if (myArray[i].name === nameKey) {
@@ -1031,9 +1199,27 @@ function searchWithIndex(nameKey, myArray) {
     }
     return null
 }
+function searchByName(nameKey,nameValue,myArray) {
+    for (var i = 0; i < myArray.length; i++) {
+        if (myArray[i][nameValue] === nameKey) {
+            return myArray[i]
+        }
+    }
+    return null
+}
+
 function search(nameKey, myArray) {
     for (var i = 0; i < myArray.length; i++) {
         if (myArray[i].name === nameKey) {            
+            return myArray[i]
+        }
+    }
+    return null
+}
+function searchIn0WithInd(nameKey, myArray) {
+    for (var i = 0; i < myArray.length; i++) {
+        if (myArray[i][0] === nameKey) {
+            myArray[i].__MY_CURRENT_INDEX = i
             return myArray[i]
         }
     }

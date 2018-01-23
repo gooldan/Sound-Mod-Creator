@@ -70,7 +70,7 @@ Window {
             }
             CheckBox{
                 text:"Expert mode"
-                checked: false
+                checked: true
                 onCheckedChanged: {
                     advanced_user = !advanced_user
                 }

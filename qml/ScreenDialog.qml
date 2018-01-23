@@ -65,7 +65,7 @@ Window {
                 anchors.margins: 2
                 id: image
                 source: imageUrl
-                cache: advanced_user
+                cache: false && advanced_user
                 onStatusChanged: {
                     playing = (status == AnimatedImage.Ready)
                     videoFrameCount = frameCount
@@ -84,7 +84,7 @@ Window {
         Slider {
             property bool oldPaused
             id: slider
-            visible: pausebut.visible && advanced_user
+            visible: pausebut.visible && false//advanced_user
             anchors.verticalCenter: begbut.verticalCenter
             anchors.left: begbut.right
             anchors.margins: 15

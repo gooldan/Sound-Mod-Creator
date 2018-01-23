@@ -80,5 +80,6 @@
         <file>screens/en/wwise_proj_en.png</file>
         <file>screens/en/wwiseproj_not_found_en.png</file>
         <file>screens/en/сfg_not_found_en.png</file>
+        <file>qml/RestoreDialog.qml</file>
     </qresource>
 </RCC>

@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.6
 import QtQuick.Controls 1.5
 import Qt.labs.controls 1.0
 import "loader.js" as MyLoader
@@ -11,6 +11,14 @@ Tab {
     property var myEventList
     property int maxWidth:150
     Rectangle {
+        Shortcut {
+            sequence: "Ctrl+F"
+            onActivated:
+            {
+                searchRect.focus = true
+                //searchRect.forceActiveFocus()
+            }
+        }
         id: eventRect
         anchors.fill: parent
         color: "#f0f0f0"
@@ -23,6 +31,8 @@ Tab {
             width:eventList.width
             anchors.left: eventList.left
             id:searchRect
+            visible: eventsModel.count>0
+            closable:false
         }
         ListView {
             id: eventList
@@ -52,7 +62,7 @@ Tab {
             signal searchRequested()
 
             onSearchRequested: {
-                searchRect.visible=true
+                //searchRect.visible=true
             }
 
             spacing: 4
@@ -73,7 +83,8 @@ Tab {
                     onClicked: {
                         if(searchRect.visible==true)
                         {
-                            searchRect.visible=false;
+                            eventRect.forceActiveFocus()
+                            //searchRect.visible=false;
                         }
                         if(mouse.button == Qt.LeftButton)
                         {
@@ -90,7 +101,8 @@ Tab {
                         }
                         else
                         {
-                            eventList.searchRequested();
+                            searchRect.focus = true
+                            //eventList.searchRequested();
                         }
 
                         //rootParent.stateListModel.append({stateValues:[{name:"ASD"}]});

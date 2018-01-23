@@ -19,11 +19,11 @@ ApplicationWindow {
     ConfigReader{
         id:confReader
     }
-    property string pROGRAM_VERSION_STR : " - Sound Mods Creator 0.2.1"
+    property string pROGRAM_VERSION_STR : " - Sound Mods Creator 0.2.3d"
     property alias errorWindow : errorDialog
     FileIO {
             id: myFile
-            onError: rootParent._LOG(msg)
+            onError: rectangle1._LOG(msg)
         }
     MyFileDialog{
         id:projectLoader
@@ -34,7 +34,11 @@ ApplicationWindow {
         {
             //rootParent._LOG(projectLoader.fileUrl)
             //TODO:
-            //warning, check file urls
+            //warning, check file urls            
+            MyLoader.saveProject(
+                        rootParent.projectBackupPath,
+                        myFile, rootParent.tabs,
+                        rootParent)
             rootParent.cfg.lastLoadFolder = projectLoader.fileUrl.toString();
             folder =  projectLoader.fileUrl.toString();
             var fileUrlChosen=projectLoader.fileUrl.toString().substring(8);
@@ -66,7 +70,11 @@ ApplicationWindow {
             }
             rootParent.projectFilePath=fileUrlChosen;
             rootParent.projectFileDir=myFile.getFileDir(fileUrlChosen);
-
+            rootParent.projectBackupPath = rootParent.projectFileDir + "/Backups/"+rootParent.modName+".rvb"
+            MyLoader.saveProject(
+                        rootParent.projectBackupPath,
+                        myFile, rootParent.tabs,
+                        rootParent)
             myWindow.title = rootParent.projectFilePath + pROGRAM_VERSION_STR
             if(rootParent.cfg.projectHistory.indexOf(fileUrlChosen) === -1)
             {
@@ -88,9 +96,17 @@ ApplicationWindow {
         {
             rootParent.cfg.importLastFolder = fileUrl.toString();
             folder = fileUrl.toString();
-            var importFilePath=fileUrl.toString().substring(8);
+            var importFilePath=fileUrl.toString().substring(8);            
+            MyLoader.saveProject(
+                        rootParent.projectBackupPath,
+                        myFile, rootParent.tabs,
+                        rootParent)
             if(MyLoader.importProject(rootParent,myFile,importFilePath)===false)
                 return
+            MyLoader.saveProject(
+                        rootParent.projectBackupPath,
+                        myFile, rootParent.tabs,
+                        rootParent)
             rootParent.pathTable.selection.clear()
             myWindow.title = rootParent.projectFilePath + pROGRAM_VERSION_STR
             rootParent.cfg.importLastFolder = fileUrl.toString();
@@ -98,7 +114,11 @@ ApplicationWindow {
         }
     }
     onClosing:{
-       MyLoader.saveProject(rectangle1.projectFilePath,myFile,tabs,rectangle1);
+        MyLoader.saveProject(
+                    rectangle1.projectBackupPath,
+                    myFile, rectangle1.tabs,
+                    rectangle1)
+       //MyLoader.saveProject(rectangle1.projectFilePath,myFile,tabs,rectangle1);
     }
     ErrorDialog {
         id: errorDialog
@@ -107,7 +127,7 @@ ApplicationWindow {
         visible = true
     }
 
-    property bool advanced_user: false
+    property bool advanced_user: true
     MissingFilesDialog {
         id: messageDialog
         rootParent: rectangle1
@@ -115,7 +135,6 @@ ApplicationWindow {
     menuBar: MyMenuBar {
         id: myMenuBar
     }
-
     Rectangle {
         focus: true
         anchors.fill: parent
@@ -125,9 +144,10 @@ ApplicationWindow {
         {
             MyLoader._LOG(body)
         }
-
+        property int modxmlVersion : 0
         property alias pROGRAM_VERSION_STR: myWindow.pROGRAM_VERSION_STR
         property alias mouseArea: mouseArea
+        property alias recentModel: myMenuBar.recentModel
         property var eventList;
         property var eventListModel;
         property var stateListModel;
@@ -146,6 +166,7 @@ ApplicationWindow {
         property int languageIndex:0;
         property string projectFilePath: "";
         property string projectFileDir : "";
+        property string projectBackupPath : "";
         property string modDirInGame : "";
         property string modName: "";
         property bool copyFiles : false;
@@ -219,6 +240,20 @@ ApplicationWindow {
                     cfg.gameDir="";
                 }
             }
+            if(cfg.configFile !== "")
+            {
+                if(myFile.fileExists(cfg.configFile))
+                {
+                    settingsDialog.modXmlFilepath = cfg.configFile;
+                }
+                else
+                {
+                    cfg.configFile = "";
+                    settingsDialog.warnLabel.visible=true;
+                    newProjDialog.warnNewLabel.visible=true
+                }
+            }
+
             if(cfg.wwiseDir !== "")
             {
                 settingsDialog.textOfWwisePath=cfg.wwiseDir;
@@ -298,6 +333,10 @@ ApplicationWindow {
             sequence: "Ctrl+S"
             onActivated: {
                 MyLoader.saveProject(rectangle1.projectFilePath,myFile,tabs,rectangle1);
+                MyLoader.saveProject(
+                            rectangle1.projectBackupPath,
+                            myFile, rectangle1.tabs,
+                            rectangle1)
             }
         }
 
@@ -424,6 +463,21 @@ ApplicationWindow {
                                             return myTableView.rootParent.languageIndex == 0 ? "ERROR: SOME FILES ARE MISSING":
                                                                                    "ОШИБКА: ОТСУТСТВУЮТ НЕКОТОРЫЕ ФАЙЛЫ"
                                     default:
+                                            if(advanced_user)
+                                            {
+                                                var filesArr = value.split(".wav,")
+                                                for(var i = 0; i < filesArr.length-1; ++i)
+                                                {
+                                                    filesArr[i] = filesArr[i].substr(
+                                                                filesArr[i].lastIndexOf(
+                                                                    "/") + 1) + ".wav"
+                                                }
+                                                filesArr[filesArr.length-1] = filesArr[filesArr.length-1].substr(
+                                                            filesArr[filesArr.length-1].lastIndexOf(
+                                                                "/") + 1)
+                                                return filesArr.toString()
+                                            }
+
                                             return value
                                 }
                             }
@@ -584,10 +638,24 @@ ApplicationWindow {
                             onCountChanged: {
                             }
                         }
-                        Keys.onPressed: {
-                            if (event.key === Qt.Key_Delete)
+                        function addedPressed()
+                        {
+                            if(statesBlock.addBut.enabled)
                             {
+                                statesBlock.addBut.clicked()
+                            }
+                        }
 
+                        Shortcut {
+                            sequence:"Ctrl+T"
+                            onActivated: myTableView.addedPressed()
+                        }
+                        Shortcut {
+                            sequence:"Delete"
+                            onActivated: {
+                                if(statesBlock.deleteBut.enabled) {
+                                    statesBlock.deleteBut.clicked()
+                                }
                             }
                         }
                     }
@@ -645,6 +713,13 @@ ApplicationWindow {
         visible:false
         Component.onCompleted: {
             aboutDialog.rootParent = rectangle1;
+        }
+    }
+    RestoreDialog{
+        id:restoreDialog
+        visible: false
+        Component.onCompleted: {
+            rootParent = rectangle1
         }
     }
 }

@@ -12,7 +12,7 @@ Window {
     visible: false
     title: rootParent.languageIndex == 0 ? "Settings" : "Настройки"
     minimumWidth: 500
-    minimumHeight: 310
+    minimumHeight: 410
     property var rootParent
     property alias textOfPath: pathForClient.text
     property alias textOfWwisePath: pathForWwise.text
@@ -22,6 +22,7 @@ Window {
     property alias wwiseDirDialog: wwiseFolderSelector
     property alias wwiseProjFileDialog: wwiseProjectFileSelector
     property alias warnWwiseProjLabel: warningWwiseProjLabel
+    property alias modXmlFilepath: pathForModXml.text
     //property alias language: languageCombo
     property alias textOfWwiseProjPath: pathForWwiseProj.text
     //modality: Qt.WindowModal
@@ -56,6 +57,14 @@ Window {
             anchors.topMargin: 5
             id: selectWwiseProjLabel
             text: rootParent.languageIndex == 0 ? "Wwise project file:" : "Файл проекта Wwise"
+        }
+        Label {
+            anchors.top: wwiseProjRect.bottom
+            anchors.left: parent.left
+            anchors.leftMargin: 10
+            anchors.topMargin: 5
+            id: selectModXMLClientLabel
+            text: rootParent.languageIndex == 0 ? "Mod.xml path" : "Mod.xml путь"
         }
         Button {
             anchors.top: selectClientLabel.bottom
@@ -96,6 +105,19 @@ Window {
                 wwiseProjectFileSelector.open()
             }
         }
+        Button {
+            anchors.top: selectModXMLClientLabel.bottom
+            anchors.right: parent.right
+            anchors.rightMargin: 10
+            anchors.topMargin: 5
+            id: selectmodXmlButton
+            text: "..."
+            width: 25
+            height: 25
+            onClicked: {
+                modXmlFileDialog.open()
+            }
+        }
         Rectangle {
             id: clientPath
             anchors.left: parent.left
@@ -109,6 +131,7 @@ Window {
                 anchors.fill: parent
                 id: pathForClient
                 readOnly: true
+                selectByMouse: true
                 Component.onCompleted: {
 
                 }
@@ -127,6 +150,7 @@ Window {
                 anchors.fill: parent
                 id: pathForWwise
                 readOnly: true
+                selectByMouse: true
             }
         }
         Rectangle {
@@ -142,6 +166,23 @@ Window {
                 anchors.fill: parent
                 id: pathForWwiseProj
                 readOnly: true
+                selectByMouse: true
+            }
+        }
+        Rectangle {
+            id: modXmlRect
+            anchors.left: parent.left
+            anchors.top: selectModXMLClientLabel.bottom
+            anchors.right: selectmodXmlButton.left
+            anchors.leftMargin: 10
+            anchors.rightMargin: 10
+            anchors.topMargin: 5
+            height: 25
+            TextField {
+                anchors.fill: parent
+                id: pathForModXml
+                readOnly: true
+                selectByMouse: true
             }
         }
         Label {
@@ -156,7 +197,7 @@ Window {
         ComboBox {
             id: conversionCombo
             anchors.left: convLabel.right
-            anchors.top: wwiseProjRect.bottom
+            anchors.top: modXmlRect.bottom
             anchors.leftMargin: 10
             anchors.rightMargin: 10
             anchors.topMargin: 5
@@ -169,32 +210,6 @@ Window {
                 }
             }
         }
-//        Label {
-//            id: langLabel
-//            anchors.left: parent.left
-//            anchors.verticalCenter: languageCombo.verticalCenter
-//            anchors.leftMargin: 10
-//            anchors.rightMargin: 10
-//            anchors.topMargin: 5
-//            text: rootParent.languageIndex == 0 ? "Language: " : "Язык: "
-//        }
-
-//        ComboBox {
-//            id: languageCombo
-//            anchors.left: langLabel.right
-//            anchors.top: conversionCombo.bottom
-//            anchors.leftMargin: 10
-//            anchors.rightMargin: 10
-//            anchors.topMargin: 5
-//            width: 85
-//            model: ["English", "Русский"]
-//            onCurrentIndexChanged: {
-//                if (rootParent !== undefined) {
-//                    rootParent.languageIndex = currentIndex
-//                    rootParent.cfg.languageIndex = currentIndex
-//                }
-//            }
-//        }
         Rectangle {
             id: warningWwiseLabel
             color: "orange"
@@ -294,9 +309,8 @@ Window {
             folder = fileUrl
             if (filemanager.fileExists(
                         rootParent.cfg.gameDir + "/res/banks/mod.xml")) {
-                warningLabel.visible = false
-                rootParent.warnNewLab.visible = false
-                rootParent.cfg.configFile = rootParent.cfg.gameDir + "/res/banks/mod.xml"
+
+                //rootParent.cfg.configFile = rootParent.cfg.gameDir + "/res/banks/mod.xml"
             } else {
                 warningLabel.visible = true
                 rootParent.warnNewLab.visible = true
@@ -338,5 +352,19 @@ Window {
         }
         selectMultiple: false
         nameFilters: ["Wwise project file (*.wproj)"]
+    }
+    FileDialog {
+        id: modXmlFileDialog
+        visible: false
+
+        onAccepted: {
+            folder = fileUrl
+            pathForModXml.text = fileUrl.toString().substring(8)
+            rootParent.cfg.configFile = pathForModXml.text
+            warningLabel.visible = false
+            rootParent.warnNewLab.visible = false
+        }
+        selectMultiple: false
+        nameFilters: ["Mod xml config file (mod.xml)"]
     }
 }

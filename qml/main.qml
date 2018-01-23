@@ -114,11 +114,11 @@ ApplicationWindow {
         }
     }
     onClosing:{
-        MyLoader.saveProject(
-                    rectangle1.projectBackupPath,
-                    myFile, rectangle1.tabs,
-                    rectangle1)
-       //MyLoader.saveProject(rectangle1.projectFilePath,myFile,tabs,rectangle1);
+//        MyLoader.saveProject(
+//                    rectangle1.projectBackupPath,
+//                    myFile, rectangle1.tabs,
+//                    rectangle1)
+       MyLoader.saveProject(rectangle1.projectFilePath,myFile,tabs,rectangle1);
     }
     ErrorDialog {
         id: errorDialog

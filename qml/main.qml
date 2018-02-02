@@ -2,6 +2,7 @@ import QtQuick 2.6
 import Qt.labs.controls 1.0
 import QtQuick.Controls 1.5
 import QtQuick.Dialogs 1.2
+import QtQuick.Layouts 1.3
 import QtQml 2.2
 import FileIO 1.0
 import ConfigReader 1.0
@@ -19,7 +20,7 @@ ApplicationWindow {
     ConfigReader{
         id:confReader
     }
-    property string pROGRAM_VERSION_STR : " - Sound Mods Creator 0.2.3d"
+    property string pROGRAM_VERSION_STR : " - Sound Mods Creator 0.2.4с"
     property alias errorWindow : errorDialog
     FileIO {
             id: myFile
@@ -127,7 +128,7 @@ ApplicationWindow {
         visible = true
     }
 
-    property bool advanced_user: true
+    property bool advanced_user: false
     MissingFilesDialog {
         id: messageDialog
         rootParent: rectangle1
@@ -135,7 +136,151 @@ ApplicationWindow {
     menuBar: MyMenuBar {
         id: myMenuBar
     }
+    Rectangle{
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 3
+        width: group.width+lanhide.width+6 + (lanhide.collapsed? 0:3)
+        height: lanhide.height+6
+        color: "transparent"
+        border.width: 1
+        border.color: "black"
+        radius: 3
+        z:225
+        id:lanRect
+        Behavior on width{
+            SmoothedAnimation { velocity: 200 }
+        }
+        GroupBox {
+            state: lanhide.collapsed ? "closed" : "opened"
+            states: [
+                State{
+                    name:"opened"
+                    PropertyChanges {
+                        target: group
+                        width:undefined
+                        title:rectangle1.languageIndex == 0 ? "Language:" : "Язык:"
+                    }
+                },
+                State{
+                    name:"closed"
+                    PropertyChanges {
+                        target: group
+                        width:0
+                        title:"      "
+                    }
+                }
+            ]
+            anchors.left: lanhide.right
+            anchors.top: parent.top
+            anchors.margins: 3
+            title: rectangle1.languageIndex == 0 ? "Language:" : "Язык:"
+            id:group
+            z:125
+            ColumnLayout {
+                ExclusiveGroup {
+                    id: tabPositionGroup
+                }
+                RadioButton {
+                    text: rectangle1.languageIndex == 0 ? "EN    " : "EN    "
+                    checked: rectangle1.languageIndex == 0
+                    exclusiveGroup: tabPositionGroup
+                    onClicked: {
+                        if (rectangle1.languageIndex == 1)
+                            rectangle1.languageIndex = 0
+                        checked = Qt.binding(function(){return rectangle1.languageIndex == 0})
+                    }
+                    Rectangle{
+                        id:tetett
+                        color: "transparent"
+                        width: 15
+                        height: 15
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.rightMargin: -5
+                        Image {
+                            id: name1
+                            source: "../screens/en/eng.png"
+                            anchors.fill: parent
+                        }
+                    }
+
+                }
+                RadioButton {
+                    id: fullRadioBox
+                    checked: rectangle1.languageIndex == 1
+                    text: rectangle1.languageIndex == 0 ? "RU    " : "RU    "
+                    exclusiveGroup: tabPositionGroup
+                    onClicked: {
+                        if (rectangle1.languageIndex == 0)
+                            rectangle1.languageIndex = 1
+                        checked = Qt.binding(function(){return rectangle1.languageIndex == 1})
+                    }
+                    Rectangle{
+                        id:tetett4
+                        color: "transparent"
+                        width: 15
+                        height: 11
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.rightMargin: -4
+                        Image {
+                            id: name2
+                            source: "../screens/ru/50px-Flag_of_Russia.svg.png"
+                            anchors.fill: parent
+                        }
+                    }
+                }
+            }
+        }
+        Button{
+            property bool collapsed: false
+            anchors.left: parent.left
+            anchors.top: group.top
+            anchors.bottom: group.bottom
+            anchors.leftMargin: 3
+            //color: areat.containsMouse ? "#ee2211" : "#bb0505"
+            width:18
+            z:152
+            id:lanhide
+            onClicked: {
+                collapsed = !collapsed
+                rectangle1.cfg.collapsed = collapsed
+            }
+
+            Rectangle{
+                anchors.centerIn: parent
+                color:"transparent"
+                width:18
+                height: 18
+                Image
+                {
+                    anchors.fill: parent
+                    source: "../screens/left.png"
+                    transform: Rotation {
+                        origin.x: 9
+                        origin.y: 9
+                        angle: lanhide.collapsed ? 0 : 180
+                        Behavior on angle {
+                            SmoothedAnimation { velocity: 500 }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    Rectangle{
+        color: "transparent"
+        anchors.right: parent.right
+        anchors.top:parent.top
+        width:30
+        height: 15
+        z:125
+    }
+
     Rectangle {
+        z:12
         focus: true
         anchors.fill: parent
         id: rectangle1
@@ -188,7 +333,8 @@ ApplicationWindow {
             "projectHistory":[],
             "importLastFolder":"",
             "lastLoadFolder":"",
-            "newProjDir":""
+            "newProjDir":"",
+            "lanCollapsed":false
         }
 
         signal activated()
@@ -293,6 +439,9 @@ ApplicationWindow {
             {
                 importProjectFileChooser.folder = cfg.importLastFolder;
             }
+            if(cfg.collapsed === undefined)
+                cfg.collapsed = false
+            lanhide.collapsed = cfg.collapsed
             MyLoader.updateRecents(cfg,myMenuBar.recentModel,myFile);
             rectangle1.languageIndex=cfg.languageIndex;
 
@@ -372,9 +521,9 @@ ApplicationWindow {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
-                height:50
+                height:lanhide.height+10
                 color:"#f0f0f0"
-                property real minHeight:50
+                property real minHeight:lanhide.height+10
                 TextArea {
                     id:descText
                     anchors.fill: parent
@@ -463,7 +612,7 @@ ApplicationWindow {
                                             return myTableView.rootParent.languageIndex == 0 ? "ERROR: SOME FILES ARE MISSING":
                                                                                    "ОШИБКА: ОТСУТСТВУЮТ НЕКОТОРЫЕ ФАЙЛЫ"
                                     default:
-                                            if(advanced_user)
+                                            if(/*advanced_user*/true)
                                             {
                                                 var filesArr = value.split(".wav,")
                                                 for(var i = 0; i < filesArr.length-1; ++i)

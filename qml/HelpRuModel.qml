@@ -33,8 +33,7 @@ ListModel {
                 itemName: "Далее необходимо указать пути до папки с игрой, папки WWISE и путь к проекту WWISE."
             },
             ListElement {
-                itemName: "Путь к папке с игрой должен выглядеть следующим образом: <a href=\"../screens/ru/game_dir_ru.png\">скриншот</a>.\
- При правильном указании пути, <a href=\"../screens/ru/сfg_not_found_ru.png\">надпись</a> \"Конфигурационный файл не найден!\" должна исчезнуть."
+                itemName: "Путь к папке с игрой должен выглядеть следующим образом: <a href=\"../screens/ru/game_dir_ru.png\">скриншот</a>."
             },
             ListElement {
                 itemName: "Путь к папке WWISE должен выглядеть следующим образом: <a href=\"../screens/ru/wwise_dir_ru.png\">скриншот</a>.\
@@ -44,7 +43,12 @@ ListModel {
             ListElement {
                 itemName: "Путь к файлу проекта WWISE должен выглядеть следующим образом: <a href=\"../screens/ru/wwise_proj_ru.png\">скриншот</a>.\
  При правильном указании пути, <a href=\"../screens/ru/wwiseproj_not_found_ru.png\">надпись</a> \"Файл проекта WWISE не выбран!\" должна исчезнуть."
+            },
+            ListElement {
+                itemName: "Путь к файлу mod.xml должен выглядеть следующим образом: <a href=\"../screens/ru/ru_mod_xml_path.png\">скриншот</a>.\
+При правильном указании пути, <a href=\"../screens/ru/сfg_not_found_ru.png\">надпись</a> \"Конфигурационный файл не найден!\" должна исчезнуть."
             }
+
         ]
     }
 

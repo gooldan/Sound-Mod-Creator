@@ -231,7 +231,7 @@ MenuBar {
         }
         Menu {
             id: appendStateMenu
-            visible: advanced_user
+            visible: false
             title: myMenuBar.rootParent.languageIndex
                    == 0 ? "Append global state" : "Добавить глобальное состояние"
             enabled: myMenuBar.rootParent.enabled

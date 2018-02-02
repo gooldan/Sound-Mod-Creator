@@ -18,12 +18,10 @@ TabView {
     }
     EventsTab{
         title:"SFX"
-        enabled: advanced_user
         rootParent: tabs.rootParent
     }
     EventsTab{
         title:"Loop"
-        enabled: advanced_user
         rootParent: tabs.rootParent
     }
     onCurrentIndexChanged: {

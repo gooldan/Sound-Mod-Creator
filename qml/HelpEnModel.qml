@@ -33,8 +33,7 @@ Go to \"Options\" -> \"Settings\". <a href=\"../screens/en/options_en.gif\">Vide
                 itemName: "Then you need to specify paths for the game, WWISE and WWISE project."
             },
             ListElement {
-                itemName: "Path for the game needs to be specified as this: <a href=\"../screens/en/game_dir_en.png\">screenshot</a>.\
- If the path was specified correctly, <a href=\"../screens/en/сfg_not_found_en.png\">label</a> \"Can not find config file!\" will disappear."
+                itemName: "Path for the game needs to be specified as this: <a href=\"../screens/en/game_dir_en.png\">screenshot</a>."
             },
             ListElement {
                 itemName: "Path for WWISE directory needs to be specified as this:<a href=\"../screens/en/wwise_dir_en.png\">screenshot</a>.\
@@ -44,6 +43,10 @@ Please pay attention to WWISE version, it should be 2016.2.1.5995."
             ListElement {
                 itemName: "Path for WWISE project file needs to be specified as this: <a href=\"../screens/en/wwise_proj_en.png\">screenshot</a>.\
  If the path was specified correctly, <a href=\"../screens/en/wwiseproj_not_found_en.png\">label</a> \"Wwise project is not set!\" will disappear. "
+            },
+            ListElement {
+                itemName: "Path for mod.xml file needs to be specified as this: <a href=\"../screens/en/en_mod_xml_path.png\">screenshot</a>.\
+ If the path was specified correctly, <a href=\"../screens/en/сfg_not_found_en.png\">label</a> \"Can not find config file!\" will disappear."
             }
         ]
     }

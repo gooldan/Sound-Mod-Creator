@@ -47,7 +47,6 @@
         <file>screens/ru/german_mod_export.gif</file>
         <file>screens/ru/german_mod_import.gif</file>
         <file>screens/ru/graf_zeppelin_ru.gif</file>
-        <file>screens/ru/mail_pass.txt</file>
         <file>screens/ru/missing_file.gif</file>
         <file>screens/ru/nemez_gen.gif</file>
         <file>screens/ru/nemez_gimn_op_ctrl_ru.gif</file>
@@ -81,5 +80,10 @@
         <file>screens/en/wwiseproj_not_found_en.png</file>
         <file>screens/en/сfg_not_found_en.png</file>
         <file>qml/RestoreDialog.qml</file>
+        <file>screens/ic_clear_black_36dp_2x.png</file>
+        <file>screens/en/eng.png</file>
+        <file>screens/ru/50px-Flag_of_Russia.svg.png</file>
+        <file>screens/ru/ru_mod_xml_path.png</file>
+        <file>screens/en/en_mod_xml_path.png</file>
     </qresource>
 </RCC>
